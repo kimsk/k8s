@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: rdcli
+spec:
+  containers:
+  - name: rdcli
+    image: karlkim/rdcli
+    command:
+      - "bin/bash"
+      - "-c"
+      - "sleep 10000"

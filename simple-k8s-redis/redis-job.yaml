@@ -1,0 +1,15 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: redis-job
+spec:
+  parallelism: 3
+  template:
+    metadata:
+      name: redis-job
+    spec:
+      containers:
+      - name: redis-job
+        image: karlkim/redis-job
+        command: ["./redis-job"]
+      restartPolicy: OnFailure
