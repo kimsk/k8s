@@ -16,6 +16,28 @@ let main argv =
     namespaces.Items
     |> Seq.iter (fun ns -> printfn "%s" ns.Metadata.Name)
 
+    let addMessageJobYml = 
+        sprintf """
+            apiVersion: batch/v1
+            kind: Job
+            metadata:
+              name: add-message-job-%s
+            spec:
+              ttlSecondsAfterFinished: 0
+              template:
+                spec:
+                  containers:
+                  - name: add-message-job
+                    image: karlkim/rdcli
+                    command: ["rdcli", "-h", "redis.storage", "rpush", "jobs", "apple"]
+                  restartPolicy: Never
+            """ (Guid.NewGuid().ToString().Substring(0,5))
+
+    let addMessageJob = Yaml.LoadFromString<V1Job>(addMessageJobYml)
+    client.CreateNamespacedJob(
+            body=addMessageJob,
+            namespaceParameter="default") |> ignore
+
     let jobYml = """
     apiVersion: batch/v1
     kind: Job
