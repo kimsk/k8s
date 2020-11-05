@@ -77,25 +77,25 @@ redis   ClusterIP   10.96.183.64   <none>        6379/TCP   11s
 
 ## create rdcli pod
 ```
-kubectl apply -f ./rdcli-pod.yaml
+kubectl apply -f ./rdcli-pods.yaml
 
 kubectl get pods
 
 NAME    READY   STATUS    RESTARTS   AGE
 rdcli   1/1     Running   0          3m28s
 
-kubectl exec -it rdcli -- rdcli -h redis.storage ping
+kubectl exec -it rdcli -c rdcli1 -- rdcli -h redis.storage ping
 
 PONG
 
-kubectl exec -it rdcli -- rdcli -h redis.storage rpush jobs "apple" "banana" "cherry" "durian"
+kubectl exec -it rdcli -c rdcli1 -- rdcli -h redis.storage rpush jobs "apple" "banana" "cherry" "durian"
 (integer) 4
 
-kubectl exec -it rdcli -- rdcli -h redis.storage keys *
+kubectl exec -it rdcli -c rdcli1 -- rdcli -h redis.storage keys *
 
 1) jobs
 
-kubectl exec -it rdcli -- rdcli -h redis.storage lrange jobs 0 -1
+kubectl exec -it rdcli -c rdcli1 -- rdcli -h redis.storage lrange jobs 0 -1
 
 1) apple
 2) banana

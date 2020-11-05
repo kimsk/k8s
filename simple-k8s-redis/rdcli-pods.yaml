@@ -4,7 +4,13 @@ metadata:
   name: rdcli
 spec:
   containers:
-  - name: rdcli
+  - name: rdcli1
+    image: karlkim/rdcli
+    command:
+      - "bin/bash"
+      - "-c"
+      - "sleep 10000"
+  - name: rdcli2
     image: karlkim/rdcli
     command:
       - "bin/bash"

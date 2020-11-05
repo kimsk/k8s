@@ -45,3 +45,5 @@
 ## Redis
 
 [Production Checklist for Redis on Kubernetes](https://medium.com/swlh/production-checklist-for-redis-on-kubernetes-60173d5a5325)
+
+[StackExchange.Redis](https://stackexchange.github.io/StackExchange.Redis/)
