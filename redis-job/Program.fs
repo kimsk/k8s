@@ -5,9 +5,9 @@ let main argv =
     printfn "consume item from redis FIFO queue..."
     let muxer = ConnectionMultiplexer.Connect("redis.storage")
     let conn = muxer.GetDatabase()
-    let jobs = RedisKey("jobs")
+    let items = RedisKey("items")
 
-    let item = conn.ListLeftPop(jobs)
+    let item = conn.ListLeftPop(items)
     if item.HasValue then
         printfn "consume item: %s.." (item.ToString())
     else

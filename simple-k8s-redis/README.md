@@ -88,14 +88,14 @@ kubectl exec -it rdcli -c rdcli1 -- rdcli -h redis.storage ping
 
 PONG
 
-kubectl exec -it rdcli -c rdcli1 -- rdcli -h redis.storage rpush jobs "apple" "banana" "cherry" "durian"
+kubectl exec -it rdcli -c rdcli1 -- rdcli -h redis.storage rpush items "apple" "banana" "cherry" "durian"
 (integer) 4
 
 kubectl exec -it rdcli -c rdcli1 -- rdcli -h redis.storage keys *
 
 1) jobs
 
-kubectl exec -it rdcli -c rdcli1 -- rdcli -h redis.storage lrange jobs 0 -1
+kubectl exec -it rdcli -c rdcli1 -- rdcli -h redis.storage lrange items 0 -1
 
 1) apple
 2) banana

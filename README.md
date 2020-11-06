@@ -47,3 +47,5 @@
 [Production Checklist for Redis on Kubernetes](https://medium.com/swlh/production-checklist-for-redis-on-kubernetes-60173d5a5325)
 
 [StackExchange.Redis](https://stackexchange.github.io/StackExchange.Redis/)
+
+[“Red(e)isign” Publish/Subscribe with Redis](https://www.blexin.com/en-US/Article/Blog/Redeisign-PublishSubscribe-with-Redis-93)
