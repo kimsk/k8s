@@ -128,7 +128,7 @@ kubectl logs count-jobs-1604427540-xltnm
 
 ## test F# redis-job
 ```
-kubectl run -i --tty --rm redis-job --image karlkim/redis-job --command "./redis-job"
+kubectl run -i --tty --rm redis-job --image karlkim/redis-job -- ./redis-job --jobname test-job
 
 If you don't see a command prompt, try pressing enter.
 no item left..
@@ -157,3 +157,7 @@ no item left..
 no item left..
 ```
 
+## run job-manager
+```
+kubectl run job-manager --image=karlkim/job-manager --command "./job-manager" --restart=Never
+```

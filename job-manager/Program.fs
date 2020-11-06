@@ -13,11 +13,12 @@ type CLIArguments =
             | QueueName _ -> "Name of the jobs queue"
 
 let getJobConfig jobId numberOfJobs =
+    let jobName = sprintf "redis-job-%s" jobId
     sprintf """
     apiVersion: batch/v1
     kind: Job
     metadata:
-      name: redis-job-%s
+      name: %s
     spec:
       completions: %d
       parallelism: 3
@@ -28,9 +29,9 @@ let getJobConfig jobId numberOfJobs =
           containers:
           - name: redis-job
             image: karlkim/redis-job
-            command: ["./redis-job"]
+            command: ["./redis-job", "--jobname", "%s"]
           restartPolicy: OnFailure
-    """ jobId numberOfJobs
+    """ jobName numberOfJobs jobName
 
 [<EntryPoint>]
 let main argv =
