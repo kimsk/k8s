@@ -73,14 +73,7 @@ let main argv =
         let channel = RedisChannel(queueName, RedisChannel.PatternMode.Literal)
         let messageQueue = sub.Subscribe(channel, CommandFlags.FireAndForget)
         messageQueue.OnMessage(jobHandler)
-        // messageQueue.OnMessage(fun cm ->
-        //     let message = cm.Message.ToString()
-        //     printfn "message received.. %s" message
-        //     match Int32.TryParse(message) with
-        //     | false, _ -> ()
-        //     | true, num ->
-        //         printfn "%d" (num)
-        // )
+
         do! Tasks.Task.Delay(Timeout.Infinite) |> Async.AwaitTask
         return 0
     } |> Async.RunSynchronously |> int

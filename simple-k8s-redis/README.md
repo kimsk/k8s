@@ -152,12 +152,53 @@ no item left..
 no item left..
 no item left..
 no item left..
-consume item: cherry..
+found item: cherry..
 no item left..
 no item left..
 ```
 
 ## run job-manager
 ```
+# Gives all service accounts cluster-admin privileges (don't do it in production)
+kubectl create clusterrolebinding permissive-binding --clusterrole=cluster-admin --group=system:serviceaccounts
+
 kubectl run job-manager --image=karlkim/job-manager --command "./job-manager" --restart=Never
+
+kubectl exec -it rdcli -c rdcli1 -- rdcli -h redis.storage PUBLISH jobs 20
+
+kubectl get pods
+
+NAME                    READY   STATUS      RESTARTS   AGE
+job-manager             1/1     Running     0          8m30s
+rdcli                   2/2     Running     0          75m
+redis-job-998d8-5qfnk   0/1     Completed   0          5m55s
+redis-job-998d8-jncmn   0/1     Completed   0          5m55s
+redis-job-998d8-l5xps   0/1     Completed   0          6m22s
+redis-job-998d8-npnvz   0/1     Completed   0          6m22s
+redis-job-998d8-tr556   0/1     Completed   0          6m22s
+
+kubectl logs pod/redis-job-998d8-tr556
+
+redis-job-998d8 consumes item from redis FIFO queue items...
+found item: banana..
+redis-job done...
+
+kubectl exec -it rdcli -c rdcli1 -- rdcli -h redis.storage keys *
+
+1) items
+2) banana
+3) cherry
+4) durian
+5) apple
+
+kubectl exec -it rdcli -c rdcli1 -- rdcli -h redis.storage GET cherry
+4
+
+```
+
+## subscribe rdcli2 to jobs
+```
+kubectl exec -it rdcli -c rdcli2 -- rdcli -h redis.storage
+redis.storage:6379> SUBSCRIBE jobs
+jobs
 ```

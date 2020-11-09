@@ -22,12 +22,13 @@ let main argv =
     let muxer = ConnectionMultiplexer.Connect("redis.storage")
     let conn = muxer.GetDatabase()
     let items = RedisKey(queueName)
-    let jobNameKey = RedisKey(jobName)
 
     let item = conn.ListLeftPop(items)
     if item.HasValue then
-        printfn "consume item: %s.." (item.ToString())
-        conn.StringSet(jobNameKey, item) |> ignore
+        let itemString = (item.ToString())
+        let key = RedisKey(itemString)
+        printfn "found item: %s.." itemString
+        conn.StringIncrement(key) |> ignore
     else
         printfn "no item left.."
 
