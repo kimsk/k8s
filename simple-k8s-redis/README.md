@@ -32,29 +32,41 @@ simple-redis-worker3         Ready    <none>   6m31s   v1.19.1
 
 # redis
 
-## create storage namespace
+## create storage &logging namespace
 ```
-kubectl apply -f ./storage-ns.yaml
+kubectl apply -f ./namespaces.yaml
+
+namespace/logging created
+namespace/storage created
 
 kubectl get ns
 
 NAME                 STATUS   AGE
-default              Active   9m28s
-kube-node-lease      Active   9m30s
-kube-public          Active   9m30s
-kube-system          Active   9m30s
-local-path-storage   Active   9m16s
-storage              Active   12s
+default              Active   10m
+kube-node-lease      Active   10m
+kube-public          Active   10m
+kube-system          Active   10m
+local-path-storage   Active   10m
+logging              Active   4s
+storage              Active   4s
 ```
 
-## create redis-master pod
+## create redis-master pod & service
 ```
-kubectl apply -f ./redis-pod.yaml
+kubectl apply -f ./redis.yaml
+
+pod/redis-master created
+service/redis created
 
 kubectl get pods --namespace storage
 
 NAME           READY   STATUS    RESTARTS   AGE
 redis-master   1/1     Running   0          24s
+
+kubectl get svc --namespace storage
+
+NAME    TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)    AGE
+redis   ClusterIP   10.96.183.64   <none>        6379/TCP   11s
 ```
 
 ### testing with rdcli (npm install -g redis-cli)
@@ -65,15 +77,6 @@ rdcli ping
 PONG
 ```
 
-## create redis service
-```
-kubectl apply -f ./redis-service.yaml
-
-kubectl get svc --namespace storage
-
-NAME    TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)    AGE
-redis   ClusterIP   10.96.183.64   <none>        6379/TCP   11s
-```
 
 ## create rdcli pod
 ```
@@ -105,23 +108,21 @@ kubectl exec -it rdcli -c rdcli1 -- rdcli -h redis.storage lrange items 0 -1
 
 ## create cronjob to count # of jobs
 ```
-kubectl apply -f ./count-jobs-cronjob.yaml
+kubectl apply -f ./count-items-cronjob.yaml
 
-NAME         SCHEDULE      SUSPEND   ACTIVE   LAST SCHEDULE   AGE
-count-jobs   */1 * * * *   False     0        25s             6m45s
+cronjob.batch/count-items created
 
-kubectl get cronjob count-jobs
+kubectl get cronjob -n logging
 
-NAME         SCHEDULE      SUSPEND   ACTIVE   LAST SCHEDULE   AGE
-count-jobs   */1 * * * *   False     1        11s             12s
+NAME          SCHEDULE      SUSPEND   ACTIVE   LAST SCHEDULE   AGE
+count-items   */5 * * * *   False     0        <none>          73s
 
-kubectl get pods
+kubectl get pods -n logging
 
-NAME                          READY   STATUS      RESTARTS   AGE
-count-jobs-1604427540-xltnm   0/1     Completed   0          20s
-rdcli                         1/1     Running     0          36m
+NAME                           READY   STATUS      RESTARTS   AGE
+count-items-1605020700-bmdcd   0/1     Completed   0          3m40s
 
-kubectl logs count-jobs-1604427540-xltnm
+kubectl logs count-items-1605020700-bmdcd
 
 (integer) 4
 ```
@@ -131,30 +132,32 @@ kubectl logs count-jobs-1604427540-xltnm
 kubectl run -i --tty --rm redis-job --image karlkim/redis-job -- ./redis-job --jobname test-job
 
 If you don't see a command prompt, try pressing enter.
-no item left..
-consume item: apple..
-consume item: banana..
-consume item: cherry..
-consume item: durian..
-no item left..
-no item left..
+found item: apple..
+redis-job done...
+Session ended, resume using 'kubectl attach redis-job -c redis-job -i -t' command when the pod is running
+pod "redis-job" deleted
 ```
 
 ## create F# redis-job
 ```
 kubectl apply -f ./redis-job.yaml
 
-kubectl logs --follow <redis-job pod-name>
+kubectl get pods
 
-consume item from redis FIFO queue...
-no item left..
-no item left..
-no item left..
-no item left..
-no item left..
-found item: cherry..
-no item left..
-no item left..
+NAME              READY   STATUS      RESTARTS   AGE
+rdcli             2/2     Running     0          56m
+redis-job-58pjw   0/1     Completed   0          45s
+redis-job-9wc4p   0/1     Completed   0          39s
+redis-job-dvzxf   0/1     Completed   0          50s
+redis-job-h9pvz   0/1     Completed   0          50s
+redis-job-js7hx   0/1     Completed   0          50s
+redis-job-k7d6s   0/1     Completed   0          43s
+
+kubectl logs redis-job-k7d6s
+
+redis-job consumes item from redis FIFO queue items...
+found item: apple..
+redis-job done...
 ```
 
 ## run job-manager
@@ -164,22 +167,30 @@ kubectl create clusterrolebinding permissive-binding --clusterrole=cluster-admin
 
 kubectl run job-manager --image=karlkim/job-manager --command "./job-manager" --restart=Never
 
-kubectl exec -it rdcli -c rdcli1 -- rdcli -h redis.storage PUBLISH jobs 20
+kubectl get pods
+
+NAME          READY   STATUS    RESTARTS   AGE
+job-manager   1/1     Running   0          40s
+rdcli         2/2     Running   0          58m
+
+
+kubectl exec -it rdcli -c rdcli1 -- rdcli -h redis.storage PUBLISH jobs 10
 
 kubectl get pods
 
-NAME                    READY   STATUS      RESTARTS   AGE
-job-manager             1/1     Running     0          8m30s
-rdcli                   2/2     Running     0          75m
-redis-job-998d8-5qfnk   0/1     Completed   0          5m55s
-redis-job-998d8-jncmn   0/1     Completed   0          5m55s
-redis-job-998d8-l5xps   0/1     Completed   0          6m22s
-redis-job-998d8-npnvz   0/1     Completed   0          6m22s
-redis-job-998d8-tr556   0/1     Completed   0          6m22s
+NAME                    READY   STATUS              RESTARTS   AGE
+job-manager             1/1     Running             0          6m16s
+rdcli                   2/2     Running             0          63m
+redis-job-58d6a-cvs5t   0/1     ContainerCreating   0          0s
+redis-job-58d6a-dzkfp   0/1     Completed           0          7s
+redis-job-58d6a-h68cc   0/1     ContainerCreating   0          3s
+redis-job-58d6a-j98br   0/1     Completed           0          7s
+redis-job-58d6a-kv2jg   0/1     ContainerCreating   0          2s
+redis-job-58d6a-px4lw   0/1     Completed           0          7s
 
-kubectl logs pod/redis-job-998d8-tr556
+kubectl logs pod/redis-job-58d6a-px4lw
 
-redis-job-998d8 consumes item from redis FIFO queue items...
+redis-job-58d6a consumes item from redis FIFO queue items...
 found item: banana..
 redis-job done...
 

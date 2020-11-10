@@ -1,18 +1,19 @@
 apiVersion: batch/v1beta1
 kind: CronJob
 metadata:
-  name: count-jobs
+  name: count-items
+  namespace: logging
 spec:
-  schedule: "*/1 * * * *"
+  schedule: "*/5 * * * *"
   jobTemplate:
     spec:
       template:
         spec:
           containers:
-          - name: count-jobs
+          - name: count-items
             image: karlkim/rdcli
             args:
             - /bin/sh
             - -c
-            - rdcli -h redis.storage llen jobs
+            - rdcli -h redis.storage llen items
           restartPolicy: OnFailure

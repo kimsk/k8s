@@ -3,7 +3,7 @@ kind: Job
 metadata:
   name: redis-job
 spec:
-  completions: 30
+  completions: 6
   parallelism: 3
   template:
     metadata:
