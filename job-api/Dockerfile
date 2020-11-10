@@ -9,4 +9,3 @@ WORKDIR /app
 EXPOSE 80
 COPY --from=build-env /app ./
 RUN echo "{}" > /app/appsettings.json
-ENTRYPOINT ["dotnet", "job-api.App.dll"]

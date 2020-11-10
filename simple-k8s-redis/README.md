@@ -213,3 +213,11 @@ kubectl exec -it rdcli -c rdcli2 -- rdcli -h redis.storage
 redis.storage:6379> SUBSCRIBE jobs
 jobs
 ```
+
+### job-api
+```
+kubectl apply -f .\job-api.yaml
+
+# testing
+kubectl port-forward job-api 5000:80
+```

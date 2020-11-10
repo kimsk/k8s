@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: job-api
+  labels:
+    app: job-api 
+spec:
+  containers:
+    - name: job-api
+      image: karlkim/job-api
+      command:
+      - "dotnet"
+      - "job-api.App.dll"
+      ports:
+        - containerPort: 5000
