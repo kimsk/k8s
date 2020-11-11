@@ -1,3 +1,3 @@
-FROM mcr.microsoft.com/dotnet/core/runtime-deps:3.1 AS job-manager
+FROM mcr.microsoft.com/dotnet/runtime-deps:5.0 AS job-manager
 WORKDIR /app
-COPY ./bin/Release/netcoreapp3.1/linux-x64 .
+COPY ./bin/Release/net5.0/linux-x64 .

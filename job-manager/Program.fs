@@ -13,14 +13,14 @@ type CLIArguments =
             | QueueName _ -> "Name of the jobs queue"
 
 let getJobConfig jobId numberOfJobs =
-    let jobName = sprintf "redis-job-%s" jobId
-    sprintf """
+    let jobName = sprintf $"redis-job-%s{jobId}"
+    sprintf $"""
     apiVersion: batch/v1
     kind: Job
     metadata:
-      name: %s
+      name: %s{jobName}
     spec:
-      completions: %d
+      completions: %d{numberOfJobs}
       parallelism: 3
       template:
         metadata:
@@ -29,9 +29,9 @@ let getJobConfig jobId numberOfJobs =
           containers:
           - name: redis-job
             image: karlkim/redis-job
-            command: ["./redis-job", "--jobname", "%s"]
+            command: ["./redis-job", "--jobname", "%s{jobName}"]
           restartPolicy: OnFailure
-    """ jobName numberOfJobs jobName
+    """
 
 [<EntryPoint>]
 let main argv =
@@ -69,7 +69,7 @@ let main argv =
 
         let sub = redis.GetSubscriber()
 
-        printfn "Subscribe to %s.." queueName
+        printfn $"Subscribe to %s{queueName}.."
         let channel = RedisChannel(queueName, RedisChannel.PatternMode.Literal)
         let messageQueue = sub.Subscribe(channel, CommandFlags.FireAndForget)
         messageQueue.OnMessage(jobHandler)
