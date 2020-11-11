@@ -30,6 +30,12 @@ simple-redis-worker2         Ready    <none>   6m31s   v1.19.1
 simple-redis-worker3         Ready    <none>   6m31s   v1.19.1
 ```
 
+# Minikube
+```
+minikube start
+```
+
+
 # redis
 
 ## create storage &logging namespace
@@ -220,4 +226,12 @@ kubectl apply -f .\job-api.yaml
 
 # testing
 kubectl port-forward job-api 5000:80
+
+# minikube
+kubectl apply -f .\job-api-loadbalancer.yaml
+minikube service job-api-loadbalancer
+
+# ingress
+
+
 ```

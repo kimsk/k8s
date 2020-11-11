@@ -1,0 +1,13 @@
+# does not work with Kind
+apiVersion: v1
+kind: Service
+metadata:
+  name: job-api-loadbalancer
+spec:
+  type: LoadBalancer
+  selector:
+    app: job-api
+  ports:
+  - protocol: TCP
+    port: 5000
+    targetPort: 80
