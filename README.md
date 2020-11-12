@@ -16,6 +16,8 @@
 
 [Scalable Microservices with Kubernetes](https://www.udacity.com/course/scalable-microservices-with-kubernetes--ud615)
 
+[Kubernetes The Hard Way](https://github.com/kelseyhightower/Kubernetes-the-hard-way)
+
 ### Jobs
 
 [Run Jobs](https://kubernetes.io/docs/tasks/job/)
@@ -33,6 +35,8 @@
 [Getting Started with Minikube on WSL2](https://matheja.me/2020/04/08/getting-started-with-minikube-on-wsl2.html)
 
 [spring-batch-kubernetes](https://speakerdeck.com/benas/spring-batch-kubernetes?slide=22)
+
+[Kubernetes Jobs 101 - The Task Jobs](https://www.magalix.com/blog/kubernetes-jobs-101)
 
 ### local k8s using kind
 
