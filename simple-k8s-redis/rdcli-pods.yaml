@@ -7,12 +7,12 @@ spec:
   - name: rdcli1
     image: karlkim/rdcli
     command:
-      - "bin/bash"
+      - "bin/sh"
       - "-c"
       - "sleep 10000"
   - name: rdcli2
     image: karlkim/rdcli
     command:
-      - "bin/bash"
+      - "bin/sh"
       - "-c"
       - "sleep 10000"
