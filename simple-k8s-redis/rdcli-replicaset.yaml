@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: rdcli
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: rdcli
+  template:
+    metadata:
+      labels:
+        app: rdcli
+    spec:
+      containers:
+      - name: rdcli
+        image: karlkim/rdcli
+        command:
+          - "bin/sh"
+          - "-c"
+          - "sleep 10000"

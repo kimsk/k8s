@@ -10,6 +10,7 @@ spec:
       image: karlkim/job-api
       command:
       - "dotnet"
+      args:
       - "job-api.App.dll"
       ports:
         - containerPort: 5000

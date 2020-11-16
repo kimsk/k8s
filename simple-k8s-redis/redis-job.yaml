@@ -12,5 +12,9 @@ spec:
       containers:
       - name: redis-job
         image: karlkim/redis-job
-        command: ["./redis-job", "--jobname", "redis-job"]
+        command:
+          - ./redis-job
+        args:
+          - --jobname
+          - redis-job
       restartPolicy: OnFailure
