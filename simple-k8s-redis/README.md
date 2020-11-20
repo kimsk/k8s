@@ -222,10 +222,20 @@ jobs
 
 ### job-api
 ```
+# create clusterrole create job
+kubectl apply -f ./create-job-clusterrole.yaml
+
+# create sa job-api-sa
+kubectl create serviceaccount job-api-sa
+
+
 kubectl apply -f .\job-api.yaml
 
+# assign job-api role
+kubectl create clusterrolebinding create-job-role-binding --clusterrole=create-job-role --serviceaccount=default:job-api-sa
+
 # testing
-kubectl port-forward job-api 5000:80
+kubectl port-forward job-api 80:80
 
 # minikube
 kubectl apply -f .\job-api-loadbalancer.yaml

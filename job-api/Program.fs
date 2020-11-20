@@ -112,8 +112,8 @@ let webApp =
             choose [
                 route "/" >=> indexHandler "world"
                 routef "/hello/%s" indexHandler
-                routeBind<Job> "/jobs/{JobName}/{NumberOfJobs}" jobHandler
             ]
+        POST >=> routeBind<Job> "/jobs/{JobName}/{NumberOfJobs}" jobHandler
         setStatusCode 404 >=> text "Not Found" ]
 
 // ---------------------------------

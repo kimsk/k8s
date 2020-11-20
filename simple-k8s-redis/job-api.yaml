@@ -5,6 +5,7 @@ metadata:
   labels:
     app: job-api 
 spec:
+  serviceAccountName: job-api-sa
   containers:
     - name: job-api
       image: karlkim/job-api
