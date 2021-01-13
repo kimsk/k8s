@@ -1,0 +1,46 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pod
+spec:
+  volumes:
+  - name: shared-cache
+    emptyDir: {}
+  - name: hostpath-data
+    hostPath:
+      path: /hostpath-data
+  - name: pv-data
+    persistentVolumeClaim:
+      claimName: pv-data
+  containers:
+  - name: pod-1
+    image: alpine
+    command:
+      - bin/sh
+    args:
+      - -c
+      - sleep 1000
+    volumeMounts:
+      - name: shared-cache
+        mountPath: /cache
+      - name: hostpath-data
+        mountPath: /hostpath-data # pod path
+      - name: pv-data
+        mountPath: /pv-data
+  - name: pod-2
+    image: alpine
+    command:
+      - bin/sh
+    args:
+      - -c
+      - sleep 1000
+    volumeMounts:
+      - name: shared-cache
+        mountPath: /cache
+      - name: hostpath-data
+        mountPath: /hostpath-data
+      - name: pv-data
+        mountPath: /pv-data
+
+# kubectl exec -it pod --container pod-1 -- bin/sh
+# kubectl exec -it pod --container pod-2 -- bin/sh
