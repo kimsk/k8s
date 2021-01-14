@@ -10,7 +10,6 @@ open Microsoft.Extensions.Logging
 open Microsoft.Extensions.DependencyInjection
 open Giraffe
 
-open FSharp.Control.Tasks.V2.ContextInsensitive
 open k8s
 open k8s.Models
 
