@@ -1,0 +1,173 @@
+proxy:
+  secretToken: "" # openssl rand -hex 32
+  https:
+    hosts:
+      - notebook.karlk.im
+    letsencrypt:
+      contactEmail: contact@karlk.im
+singleuser:
+  lifecycleHooks:
+    postStart:
+      exec:
+         command:
+           - "sh"
+           - "-c"
+           - >
+             if [ ! -d /home/jovyan/.ipython ]; then
+              mkdir /home/jovyan/.ipython
+             fi;
+             if [ ! -d /home/jovyan/.ipython/profile_default ]; then
+              mkdir /home/jovyan/.ipython/profile_default
+             fi;
+             if [ ! -d /home/jovyan/.ipython/profile_default/startup ]; then
+              mkdir /home/jovyan/.ipython/profile_default/startup
+             fi;
+             cp -r /tmp/karlkim-setup.py /home/jovyan/.ipython/profile_default/startup
+  image:
+    name: karlkim.azurecr.io/scipy-notebook
+    tag: latest
+  imagePullSecret:
+    enabled: true
+    registry: karlkim.azurecr.io
+    username: karlkim
+    email: contact@karlk.im
+    password:
+hub:
+  extraEnv:
+    JUPYTERHUB_CRYPT_KEY: "" # openssl rand -hex 32
+  extraConfig:
+    auth0: |
+      import json
+      import pprint
+      import jwt
+      import time
+
+      from traitlets import Bool
+      from oauthenticator.auth0 import Auth0OAuthenticator # version 0.11.0+
+      from oauthenticator.oauth2 import OAuthLoginHandler
+      from tornado import gen
+      from tornado.httputil import url_concat
+      from tornado.httpclient import HTTPRequest, AsyncHTTPClient
+
+      class Auth0AudienceLoginHandler(OAuthLoginHandler):
+        def get(self):
+          redirect_uri = self.authenticator.get_callback_url(self)
+          self.log.info('OAuth (Auth0) redirect: %r', redirect_uri)
+          state = self.get_state()
+          self.set_state_cookie(state)
+
+          self.authorize_redirect(
+            redirect_uri=redirect_uri,
+            client_id=self.authenticator.client_id,
+            scope=self.authenticator.scope,
+            extra_params={'state': state, 'audience':'https://auth0.karlk.im'},
+            response_type='code')
+
+      class Auth0HubEnvAuthenticator(Auth0OAuthenticator):
+        login_handler = Auth0AudienceLoginHandler
+
+        async def authenticate(self, handler, data=None):
+            self.log.debug('authenticate()')
+            code = handler.get_argument("code")
+
+            http_client = AsyncHTTPClient()
+
+            params = {
+                'grant_type': 'authorization_code',
+                'client_id': self.client_id,
+                'client_secret': self.client_secret,
+                'code': code,
+                'redirect_uri': self.get_callback_url(handler)
+            }
+
+            url = "https://%s.auth0.com/oauth/token" % self.auth0_subdomain
+            req = HTTPRequest(url,
+                            method="POST",
+                            headers={"Content-Type": "application/json"},
+                            body=json.dumps(params)
+                            )
+
+            resp = await http_client.fetch(req)
+            resp_json = json.loads(resp.body.decode('utf8', 'replace'))
+
+            access_token = resp_json['access_token']
+
+
+            # Determine who the logged in user is
+            headers={"Accept": "application/json",
+                    "User-Agent": "JupyterHub",
+                    "Authorization": "Bearer {}".format(access_token)
+            }
+            req = HTTPRequest("https://%s.auth0.com/userinfo" % self.auth0_subdomain,
+                            method="GET",
+                            headers=headers
+                            )
+            resp = await http_client.fetch(req)
+            resp_json = json.loads(resp.body.decode('utf8', 'replace'))
+
+            self.log.debug('resp_json from userInfo:')
+            self.log.debug('%s', pprint.pformat(resp_json))
+
+            return {
+                'name': resp_json["email"],
+                'auth_state': {
+                    'access_token': access_token,
+                    'auth0_user': resp_json,
+                }
+            }
+
+        async def refresh_user(self, user, handler=None):
+          self.log.debug('refresh_user()')
+          auth_state = await user.get_auth_state()
+          decoded_access_token = jwt.decode(auth_state['access_token'], verify=False)
+          time_diff = decoded_access_token['exp'] - time.time()
+          self.log.debug('checking access token for %s...%d' % (auth_state['auth0_user']['email'], time_diff))
+          if time_diff > 0:
+            self.log.debug('auth0 token ...%s is still valid.' % auth_state['access_token'][-20:])
+            return True
+          else:
+            self.log.debug('auth0 token ...%s is expired.' % auth_state['access_token'][-20:])
+            return False
+
+        @gen.coroutine
+        def pre_spawn_start(self, user, spawner):
+          self.log.debug('pre_spawn_start()')
+          auth_state = yield user.get_auth_state()
+
+          if not auth_state:
+            self.log.debug('NO auth_state')
+            spawner.environment['AUTH0_TOKEN'] = "N/A"
+            spawner.environment['AUTH0_EMAIL'] = "N/A"
+            # user has no auth state
+            return
+          # define some environment variables from auth_state
+          spawner.environment['AUTH0_TOKEN'] = auth_state['access_token']
+          spawner.environment['AUTH0_EMAIL'] = auth_state['auth0_user']['email']
+          self.log.debug('new token assigned ...%s' % auth_state['access_token'][-20:])
+
+        @gen.coroutine
+        def post_spawn_stop(self, user, spawner):
+          self.log.debug('post_spawn_stop()')
+          auth_state = yield user.get_auth_state()
+          self.log.debug('shutdown server for %s' % (auth_state['auth0_user']['email']))
+
+      c.JupyterHub.authenticator_class = Auth0HubEnvAuthenticator
+      c.Auth0HubEnvAuthenticator.auth0_subdomain = 'notebook'
+      c.Auth0HubEnvAuthenticator.client_id = '' # auth0
+      c.Auth0HubEnvAuthenticator.client_secret = '' # auth0
+      c.Auth0OAuthenticator.oauth_callback_url = 'https://notebook.karlk.im/hub/oauth_callback'
+      c.Auth0HubEnvAuthenticator.scope = ['openid', 'email']
+      c.Auth0HubEnvAuthenticator.admin_users = { 'contact@karlk.im', 'hi@karlki.im' }
+      c.Auth0HubEnvAuthenticator.enable_auth_state = True
+
+      # handle expired auth0 token
+      c.Auth0HubEnvAuthenticator.refresh_pre_spawn = True
+      c.JupyterHub.shutdown_on_logout = True
+      c.JupyterHub.cleanup_servers = True
+
+      c.Auth0HubEnvAuthenticator.auto_login = True
+    # https://zero-to-jupyterhub.readthedocs.io/en/latest/user-environment.html#use-jupyterlab-by-default
+    jupyterlab: |
+      c.Spawner.cmd = ['jupyter-labhub']
+    debug: |
+      c.JupyterHub.log_level = 10 # debug 10, info 20, warning 30
