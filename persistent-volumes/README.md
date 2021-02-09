@@ -1,0 +1,1 @@
+- [Persistent Volumes on Kubernetes for beginners](https://www.youtube.com/watch?v=ZxC6FwEc9WQ)

@@ -59,7 +59,7 @@ storage              Active   4s
 
 ## create redis-master pod & service
 ```
-kubectl apply -f ./redis.yaml
+kubectl apply -f ./redis-pod.yaml
 
 pod/redis-master created
 service/redis created
@@ -83,10 +83,38 @@ rdcli ping
 PONG
 ```
 
+## create redis-master deployment & service (if not as a pod)
+```
+kubectl apply -f ./redis-deployment.yaml
+
+deployment.apps/redis-master created
+service/redis created
+
+kubectl get deploy -n storage
+
+NAME           READY   UP-TO-DATE   AVAILABLE   AGE
+redis-master   1/1     1            1           16s
+
+kubectl get po -n storage
+
+NAME                          READY   STATUS    RESTARTS   AGE
+redis-master-d9d49b7f-rrqck   1/1     Running   0          21s
+
+kubectl get svc -n storage
+
+NAME    TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)    AGE
+redis   ClusterIP   10.96.244.218   <none>        6379/TCP   28s
+```
+
+
 
 ## create rdcli pod
 ```
 kubectl apply -f ./rdcli-pods.yaml
+
+# or deployments
+kubectl apply -f ./rdcli-deployment.yaml
+
 
 kubectl get pods
 
